@@ -16,14 +16,14 @@ import (
 type Config struct {
 	Eth        *ethclient.Client
 	PrivateKey *ecdsa.PrivateKey
-	Faucet    common.Address
+	Faucet     common.Address
 }
 
-func NewConfig(e *ethclient.Client, p *ecdsa.PrivateKey) *Config {
+func NewFaucet(e *ethclient.Client, p *ecdsa.PrivateKey) *Config {
 	return &Config{
 		Eth:        e,
 		PrivateKey: p,
-		Faucet:    crypto.PubkeyToAddress(p.PublicKey),
+		Faucet:     crypto.PubkeyToAddress(p.PublicKey),
 	}
 }
 
@@ -55,7 +55,7 @@ func (c *Config) CreditTETH(addressHex string) error {
 	for {
 		time.Sleep(time.Second)
 		trxReceipt, err := c.Eth.TransactionReceipt(context.Background(), signedTx.Hash())
-		if err != nil && err == ethereum.NotFound {
+		if err == ethereum.NotFound {
 			continue
 		}
 
