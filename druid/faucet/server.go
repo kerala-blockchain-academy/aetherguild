@@ -1,36 +1,33 @@
 package faucet
 
 import (
+	"embed"
 	"fmt"
-	"html/template"
+	"io/fs"
+	"log"
 	"net/http"
 )
 
-var templates = template.Must(template.ParseFiles("./web/index.html"))
+//go:embed dist/*
+var dist embed.FS
 
 func ServeFaucet(c *Config) {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			err := templates.ExecuteTemplate(w, "index.html", nil)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-			return
-		}
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	})
+	distFS, err := fs.Sub(dist, "dist")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.Handle("/", http.FileServer(http.FS(distFS)))
 
 	http.HandleFunc("/credit", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			err := r.ParseForm()
-			if err != nil {
+			if err = r.ParseMultipartForm(10 << 20); err != nil {
 				http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 				return
 			}
 
 			address := r.FormValue("address")
-			err = c.CreditTETH(address)
-			if err != nil {
+			if err = c.CreditTETH(address); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
