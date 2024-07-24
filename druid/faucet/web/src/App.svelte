@@ -8,19 +8,15 @@
 
     const response = await fetch('credit', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
+      body: formData,
     })
 
     if (response.ok) {
-      alert(`Credit 1 TETH successfully to ${address}!!`)
+      alert(`Credited 1 TETH successfully to ${address}!!`)
+      address = ''
     } else {
-      alert(`Error: ${response.status}`)
+      alert(`Error: ${await response.json()}`)
     }
-
-    address = ''
   }
 </script>
 
@@ -44,7 +40,6 @@
     <button
       type="submit"
       class="text-gray-200 bg-gray-800 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 mb-2"
-      on:click={requestTETH}
     >
       <svg
         class="w-4 h-4 me-2 -ms-1 text-gray-500"
