@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	// "github.com/Kerala-Blockchain-Academy/aetherguild/druid/faucet"
+	"github.com/Kerala-Blockchain-Academy/aetherguild/druid/faucet"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -100,7 +100,7 @@ func main() {
 	rpcClient := stack.Attach()
 	ethClient := ethclient.NewClient(rpcClient)
 
-	// c := faucet.NewFaucet(ethClient, privateKey)
+	c := faucet.NewFaucet(ethClient, privateKey)
 
 	go func() {
 		// Open any wallets already attached
@@ -136,9 +136,9 @@ func main() {
 		}
 	}()
 
-	// go func() {
-	// 	faucet.ServeFaucet(c)
-	// }()
+	go func() {
+		faucet.ServeFaucet(c)
+	}()
 
 	stack.Wait()
 }
