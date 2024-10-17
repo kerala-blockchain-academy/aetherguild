@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/graphql"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -54,9 +55,14 @@ func makeDruid() *node.Node {
 		Service:   filters.NewFilterAPI(filterSystem),
 	}})
 
+	// Configure GraphQL
+	if err := graphql.New(stack, backend.APIBackend, filterSystem, cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts); err != nil {
+		log.Fatalf("Failed to register the GraphQL service: %v", err)
+	}
+
 	simBeacon, err := catalyst.NewSimulatedBeacon(0, backend)
 	if err != nil {
-		log.Fatalf("failed to register dev mode catalyst service: %v", err)
+		log.Fatalf("Failed to register dev mode catalyst service: %v", err)
 	}
 	catalyst.RegisterSimulatedBeaconAPIs(stack, simBeacon)
 	stack.RegisterLifecycle(simBeacon)
