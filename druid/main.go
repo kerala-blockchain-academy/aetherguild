@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,11 +17,26 @@ import (
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/graphql"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 )
 
 var privateKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+
+func init() {
+	terminalOutput := io.Writer(os.Stderr)
+	useColor := (isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
+	if useColor {
+		terminalOutput = colorable.NewColorableStderr()
+	}
+
+	glogger := log.NewGlogHandler(log.NewTerminalHandler(terminalOutput, useColor))
+	// glogger.Verbosity(log.FromLegacyLevel(0))
+	log.SetDefault(log.NewLogger(glogger))
+}
 
 func makeDruid() *node.Node {
 	cfg := DruidConfig{
@@ -31,7 +46,7 @@ func makeDruid() *node.Node {
 
 	stack, err := node.New(&cfg.Node)
 	if err != nil {
-		log.Fatalf("Failed to create the protocol stack: %v", err)
+		log.Error("Failed to create the protocol stack: %v", err)
 	}
 
 	b := keystore.NewKeyStore(stack.KeyStoreDir(), keystore.LightScryptN, keystore.LightScryptP)
@@ -42,7 +57,7 @@ func makeDruid() *node.Node {
 
 	backend, err := eth.New(stack, &cfg.Eth)
 	if err != nil {
-		log.Fatalf("Failed to register the Ethereum service: %v", err)
+		log.Error("Failed to register the Ethereum service: %v", err)
 	}
 	stack.RegisterAPIs(tracers.APIs(backend.APIBackend))
 
@@ -57,12 +72,12 @@ func makeDruid() *node.Node {
 
 	// Configure GraphQL
 	if err := graphql.New(stack, backend.APIBackend, filterSystem, cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts); err != nil {
-		log.Fatalf("Failed to register the GraphQL service: %v", err)
+		log.Error("Failed to register the GraphQL service: %v", err)
 	}
 
 	simBeacon, err := catalyst.NewSimulatedBeacon(0, backend)
 	if err != nil {
-		log.Fatalf("Failed to register dev mode catalyst service: %v", err)
+		log.Error("Failed to register dev mode catalyst service: %v", err)
 	}
 	catalyst.RegisterSimulatedBeaconAPIs(stack, simBeacon)
 	stack.RegisterLifecycle(simBeacon)
@@ -75,7 +90,7 @@ func main() {
 	defer stack.Close()
 
 	if err := stack.Start(); err != nil {
-		log.Fatalf("Error starting protocol stack: %v", err)
+		log.Error("Error starting protocol stack: %v", err)
 	}
 
 	go func() {
@@ -84,12 +99,12 @@ func main() {
 		defer signal.Stop(sigc)
 
 		shutdown := func() {
-			log.Println("Got interrupt, shutting down...")
+			log.Warn("Got interrupt, shutting down...")
 			go stack.Close()
 			for i := 10; i > 0; i-- {
 				<-sigc
 				if i > 1 {
-					log.Print("Already shutting down, interrupt more to panic.", "times", i-1)
+					log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
 				}
 			}
 		}
@@ -112,7 +127,7 @@ func main() {
 		// Open any wallets already attached
 		for _, w := range stack.AccountManager().Wallets() {
 			if err := w.Open(""); err != nil {
-				log.Print("Failed to open wallet", "url", w.URL(), "err", err)
+				log.Error("Failed to open wallet", "url", w.URL(), "err", err)
 			}
 		}
 
@@ -121,11 +136,11 @@ func main() {
 			switch event.Kind {
 			case accounts.WalletArrived:
 				if err := event.Wallet.Open(""); err != nil {
-					log.Print("New wallet appeared, failed to open", "url", event.Wallet.URL(), "err", err)
+					log.Info("New wallet appeared, failed to open", "url", event.Wallet.URL(), "err", err)
 				}
 			case accounts.WalletOpened:
 				status, _ := event.Wallet.Status()
-				log.Print("New wallet appeared", "url", event.Wallet.URL(), "status", status)
+				log.Info("New wallet appeared", "url", event.Wallet.URL(), "status", status)
 
 				var derivationPaths []accounts.DerivationPath
 				if event.Wallet.URL().Scheme == "ledger" {
@@ -136,7 +151,7 @@ func main() {
 				event.Wallet.SelfDerive(derivationPaths, ethClient)
 
 			case accounts.WalletDropped:
-				log.Print("Old wallet dropped", "url", event.Wallet.URL())
+				log.Info("Old wallet dropped", "url", event.Wallet.URL())
 				event.Wallet.Close()
 			}
 		}

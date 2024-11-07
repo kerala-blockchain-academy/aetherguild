@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts"
@@ -9,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/eth/ethconfig"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/node"
 )
 
@@ -49,7 +49,7 @@ func SetEthConfig(stack *node.Node, cfg *ethconfig.Config) {
 		ks = keystores[0].(*keystore.KeyStore)
 	}
 	if ks == nil {
-		log.Fatalf("Keystore is not available")
+		log.Error("Keystore is not available")
 	}
 
 	// Figure out the dev account address.
@@ -61,7 +61,7 @@ func SetEthConfig(stack *node.Node, cfg *ethconfig.Config) {
 	} else {
 		developer, err = ks.NewAccount(passphrase)
 		if err != nil {
-			log.Fatalf("Failed to create developer account: %v", err)
+			log.Error("Failed to create developer account: %v", err)
 		}
 	}
 	// Make sure the address is configured as fee recipient, otherwise
@@ -69,9 +69,9 @@ func SetEthConfig(stack *node.Node, cfg *ethconfig.Config) {
 	cfg.Miner.PendingFeeRecipient = developer.Address
 
 	if err := ks.Unlock(developer, passphrase); err != nil {
-		log.Fatalf("Failed to unlock developer account: %v", err)
+		log.Error("Failed to unlock developer account: %v", err)
 	}
-	log.Printf("Using developer account >> Address: %s", developer.Address)
+	log.Info("Using developer account >> Address: %s", developer.Address)
 
 	// Create a new developer genesis block or reuse existing one
 	cfg.Genesis = core.DeveloperGenesisBlock(ethconfig.Defaults.Miner.GasCeil, &developer.Address)
