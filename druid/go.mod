@@ -2,7 +2,11 @@ module github.com/Kerala-Blockchain-Academy/aetherguild/druid
 
 go 1.22.5
 
-require github.com/ethereum/go-ethereum v1.14.11
+require (
+	github.com/ethereum/go-ethereum v1.14.11
+	github.com/mattn/go-colorable v0.1.13
+	github.com/mattn/go-isatty v0.0.20
+)
 
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
@@ -48,8 +52,6 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
