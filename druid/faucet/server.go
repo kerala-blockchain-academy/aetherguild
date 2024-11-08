@@ -4,8 +4,9 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
+
+	"github.com/ethereum/go-ethereum/log"
 )
 
 //go:embed dist/*
@@ -14,7 +15,7 @@ var dist embed.FS
 func ServeFaucet(c *Config) {
 	distFS, err := fs.Sub(dist, "dist")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
 	}
 
 	http.Handle("/", http.FileServer(http.FS(distFS)))
@@ -38,6 +39,6 @@ func ServeFaucet(c *Config) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
-	fmt.Println("Server running at 8580")
+	log.Info("Faucet started", "url", "http://127.0.0.1:8580")
 	http.ListenAndServe(":8580", nil)
 }

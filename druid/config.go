@@ -71,7 +71,7 @@ func SetEthConfig(stack *node.Node, cfg *ethconfig.Config) {
 	if err := ks.Unlock(developer, passphrase); err != nil {
 		log.Error("Failed to unlock developer account: %v", err)
 	}
-	log.Info("Using developer account >> Address: %s", developer.Address)
+	log.Info("Using developer account", "address", developer.Address)
 
 	// Create a new developer genesis block or reuse existing one
 	cfg.Genesis = core.DeveloperGenesisBlock(ethconfig.Defaults.Miner.GasCeil, &developer.Address)
