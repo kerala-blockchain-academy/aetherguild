@@ -15,7 +15,12 @@ druid-windows-amd64: faucet
 build-druid: druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64
 
 faucet:
-	@cd druid/faucet/web && npm run build
+	@cd druid/faucet/web && \
+	if [ ! -d "node_modules" ]; then \
+		echo "node_modules not found, running npm install..."; \
+		npm install; \
+	fi && \
+	npm run build
 
 fmt:
 	@gofmt -s -w $(shell find . -name "*.go")
