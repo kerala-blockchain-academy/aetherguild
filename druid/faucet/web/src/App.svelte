@@ -1,21 +1,29 @@
 <script lang="ts">
-  let address: string = ''
+  let address = ''
 
   const requestTETH = async () => {
-    const formData = new FormData()
-    formData.append('address', address)
-    console.log(formData.get('address'))
+    try {
+      if (address.length != 42 || address.substring(0, 2) != '0x') {
+        alert('Invalid address. Check the value.')
+        return
+      }
 
-    const response = await fetch('credit', {
-      method: 'POST',
-      body: formData,
-    })
+      const formData = new FormData()
+      formData.append('address', address)
 
-    if (response.ok) {
-      alert(`Credited 1 TETH successfully to ${address}!!`)
-      address = ''
-    } else {
-      alert(`Error: ${await response.json()}`)
+      const response = await fetch('credit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        alert(`Credited 1 TETH successfully to ${address}!!`)
+        address = ''
+      } else {
+        alert(`Error: ${await response.json()}`)
+      }
+    } catch (error) {
+      alert(`Error: ${error}`)
     }
   }
 </script>
@@ -35,6 +43,7 @@
       id="address"
       class="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full my-4 p-4"
       placeholder="0x..."
+      required
       bind:value={address}
     />
     <button
