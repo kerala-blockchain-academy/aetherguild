@@ -3,7 +3,7 @@ module github.com/Kerala-Blockchain-Academy/aetherguild/druid
 go 1.22.5
 
 require (
-	github.com/ethereum/go-ethereum v1.14.12
+	github.com/ethereum/go-ethereum v1.14.13
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.20
 )
