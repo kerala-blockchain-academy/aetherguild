@@ -1,5 +1,5 @@
-go 1.22.5
+go 1.23.0
 
-use (
-    ./druid
-)
+toolchain go1.23.1
+
+use ./druid
