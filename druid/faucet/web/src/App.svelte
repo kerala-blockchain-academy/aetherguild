@@ -1,7 +1,8 @@
 <script lang="ts">
-  let address = ''
+  let address = $state('')
 
-  const requestTETH = async () => {
+  const requestTETH = async (e: Event) => {
+    e.preventDefault()
     try {
       if (address.length != 42 || address.substring(0, 2) != '0x') {
         alert('Invalid address. Check the value.')
@@ -32,7 +33,7 @@
   <form
     class="max-w-screen-md mx-auto m-6 p-6 bg-white border border-gray-200 rounded-lg shadow"
     action="/credit"
-    on:submit|preventDefault={requestTETH}
+    onsubmit={requestTETH}
   >
     <h1 class="text-2xl m-4 text-center">AetherGuild - Druid Faucet</h1>
     <label for="address" class="block mb-2 text-l font-medium text-gray-900"
