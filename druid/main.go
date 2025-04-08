@@ -9,6 +9,7 @@ import (
 	"github.com/Kerala-Blockchain-Academy/aetherguild/druid/faucet"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/eth/catalyst"
@@ -75,7 +76,7 @@ func makeDruid() *node.Node {
 		log.Error("Failed to register the GraphQL service: %v", err)
 	}
 
-	simBeacon, err := catalyst.NewSimulatedBeacon(0, backend)
+	simBeacon, err := catalyst.NewSimulatedBeacon(0, common.Address{0x0}, backend)
 	if err != nil {
 		log.Error("Failed to register dev mode catalyst service: %v", err)
 	}
