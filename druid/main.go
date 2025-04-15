@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"os"
 	"os/signal"
@@ -39,10 +40,10 @@ func init() {
 	log.SetDefault(log.NewLogger(glogger))
 }
 
-func makeDruid() *node.Node {
+func makeDruid(expose, persist *bool) *node.Node {
 	cfg := DruidConfig{
 		Eth:  ethconfig.Defaults,
-		Node: DefaultNodeConfig(),
+		Node: DefaultNodeConfig(*expose, *persist),
 	}
 
 	stack, err := node.New(&cfg.Node)
@@ -87,7 +88,12 @@ func makeDruid() *node.Node {
 }
 
 func main() {
-	stack := makeDruid()
+	expose := flag.Bool("expose", false, "Expose the chain across the host")
+	persist := flag.Bool("persist", false, "Persist the chain data")
+
+	flag.Parse()
+
+	stack := makeDruid(expose, persist)
 	defer stack.Close()
 
 	if err := stack.Start(); err != nil {

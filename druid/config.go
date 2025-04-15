@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/big"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -12,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/node"
 )
 
-func DefaultNodeConfig() node.Config {
+func DefaultNodeConfig(expose, persist bool) node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = "druid"
 	cfg.DataDir = ""
@@ -25,10 +26,18 @@ func DefaultNodeConfig() node.Config {
 	cfg.P2P.NoDiscovery = true
 	cfg.P2P.DiscoveryV5 = false
 	cfg.UseLightweightKDF = true
-	cfg.HTTPHost = "127.0.0.1"
+	cfg.HTTPHost = node.DefaultHTTPHost
 	cfg.HTTPCors = []string{"*"}
 	cfg.HTTPModules = []string{"eth", "web3", "net"}
-	cfg.WSHost = "127.0.0.1"
+	cfg.WSHost = node.DefaultWSHost
+
+	if expose {
+		cfg.HTTPHost = "0.0.0.0"
+		cfg.WSHost = "0.0.0.0"
+	}
+	if persist {
+		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "druid")
+	}
 
 	return cfg
 }
