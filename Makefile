@@ -1,7 +1,10 @@
-.PHONY: druid druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet fmt
+.PHONY: druid druid-forever druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet fmt
 
 druid: faucet
 	@go run ./druid
+
+druid-forever: faucet
+	@go run ./druid --expose --persist
 
 druid-linux-amd64: faucet
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tmp/druid-linux-amd64 ./druid
