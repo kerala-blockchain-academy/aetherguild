@@ -39,6 +39,10 @@ func ServeFaucet(c *Config) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
-	log.Info("Faucet started", "url", "http://127.0.0.1:8580")
-	http.ListenAndServe(":8580", nil)
+	url := "http://127.0.0.1:8580"
+	if c.Expose {
+		url = ":8580"
+	}
+	log.Info("Faucet started", url)
+	http.ListenAndServe(url, nil)
 }

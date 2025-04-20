@@ -129,6 +129,7 @@ func main() {
 	ethClient := ethclient.NewClient(rpcClient)
 
 	c := faucet.NewFaucet(ethClient, privateKey)
+	c.Expose = *expose
 
 	go func() {
 		// Open any wallets already attached

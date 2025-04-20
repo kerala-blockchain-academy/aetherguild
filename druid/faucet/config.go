@@ -17,6 +17,7 @@ type Config struct {
 	Eth        *ethclient.Client
 	PrivateKey *ecdsa.PrivateKey
 	Faucet     common.Address
+	Expose     bool
 }
 
 func NewFaucet(e *ethclient.Client, p *ecdsa.PrivateKey) *Config {

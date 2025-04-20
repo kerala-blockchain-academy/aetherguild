@@ -13,5 +13,5 @@ COPY . .
 COPY --from=faucet /dist ./faucet/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o druid
 RUN mv druid /usr/local/bin/
-EXPOSE 8545
+EXPOSE 8545 8580
 ENTRYPOINT ["druid", "--expose", "--persist"]
