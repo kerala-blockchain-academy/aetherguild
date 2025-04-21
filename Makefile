@@ -6,6 +6,11 @@ druid: faucet
 druid-forever: faucet
 	@go run ./druid --expose --persist
 
+druid-docker:
+	@cd druid/ && docker build -t aetherguild-druid .
+	@sleep 1
+	@docker run -p 8545:8545 -p 8580:8580 aetherguild-druid
+
 druid-linux-amd64: faucet
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tmp/druid-linux-amd64 ./druid
 
