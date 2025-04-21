@@ -128,8 +128,7 @@ func main() {
 	rpcClient := stack.Attach()
 	ethClient := ethclient.NewClient(rpcClient)
 
-	c := faucet.NewFaucet(ethClient, privateKey)
-	c.Expose = *expose
+	c := faucet.NewFaucet(ethClient, privateKey, stack.Config().HTTPHost, 8580)
 
 	go func() {
 		// Open any wallets already attached

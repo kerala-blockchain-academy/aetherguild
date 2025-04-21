@@ -17,14 +17,17 @@ type Config struct {
 	Eth        *ethclient.Client
 	PrivateKey *ecdsa.PrivateKey
 	Faucet     common.Address
-	Expose     bool
+	Host       string
+	Port       int
 }
 
-func NewFaucet(e *ethclient.Client, p *ecdsa.PrivateKey) *Config {
+func NewFaucet(e *ethclient.Client, k *ecdsa.PrivateKey, h string, p int) *Config {
 	return &Config{
 		Eth:        e,
-		PrivateKey: p,
-		Faucet:     crypto.PubkeyToAddress(p.PublicKey),
+		PrivateKey: k,
+		Faucet:     crypto.PubkeyToAddress(k.PublicKey),
+		Host:       h,
+		Port:       p,
 	}
 }
 

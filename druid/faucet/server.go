@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -39,10 +40,7 @@ func ServeFaucet(c *Config) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	})
 
-	url := "http://127.0.0.1:8580"
-	if c.Expose {
-		url = ":8580"
-	}
-	log.Info("Faucet started", url)
+	url := net.JoinHostPort(c.Host, fmt.Sprintf("%d", c.Port))
+	log.Info("Faucet started", "url", url)
 	http.ListenAndServe(url, nil)
 }
