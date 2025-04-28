@@ -118,7 +118,6 @@ func main() {
 
 		<-sigc
 		shutdown()
-
 	}()
 
 	events := make(chan accounts.WalletEvent, 16)
