@@ -1,0 +1,42 @@
+version: "2"
+run:
+  tests: true
+linters:
+  default: none
+  enable:
+    - bidichk
+    - durationcheck
+    - goconst
+    - govet
+    - ineffassign
+    - misspell
+    - staticcheck
+    - unconvert
+    - whitespace
+  settings:
+    goconst:
+      min-len: 3
+      min-occurrences: 6
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
