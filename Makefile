@@ -1,4 +1,4 @@
-.PHONY: druid druid-forever druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet fmt
+.PHONY: druid druid-forever druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet test fmt
 
 druid: faucet
 	@go run ./druid
@@ -29,6 +29,9 @@ faucet:
 		npm install; \
 	fi && \
 	npm run build
+
+test:
+	@go test -v ./druid
 
 fmt:
 	@gofmt -s -w $(shell find . -name "*.go")
