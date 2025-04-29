@@ -10,9 +10,13 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func TestDruid(t *testing.T) {
+	// revert logger setup in testing
+	log.SetDefault(log.NewLogger(log.DiscardHandler()))
+
 	flag := false
 	stack := makeDruid(&flag, &flag)
 	defer stack.Close()
