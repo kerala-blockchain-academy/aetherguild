@@ -42,5 +42,9 @@ func ServeFaucet(c *Config) {
 
 	url := net.JoinHostPort(c.Host, fmt.Sprintf("%d", c.Port))
 	log.Info("Faucet started", "url", "http://"+url)
-	http.ListenAndServe(url, nil)
+	if err = http.ListenAndServe(url, nil); err != nil {
+		if err != http.ErrServerClosed {
+			log.Error("Faucet failure", "err", err)
+		}
+	}
 }
