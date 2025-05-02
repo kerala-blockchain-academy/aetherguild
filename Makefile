@@ -1,4 +1,4 @@
-.PHONY: druid druid-forever druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet test lint fmt
+.PHONY: druid druid-forever druid-docker druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet test lint vet fmt
 
 druid: faucet
 	@go run ./druid
@@ -39,6 +39,9 @@ lint:
 		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s latest; \
 	fi
 	@./bin/golangci-lint run ./druid --config .golangci.yml
+
+vet:
+	@go vet -v ./druid
 
 fmt:
 	@gofmt -s -w $(shell find . -name "*.go")
