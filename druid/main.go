@@ -73,7 +73,7 @@ func makeDruid(expose, persist *bool) *node.Node {
 	}})
 
 	// Configure GraphQL
-	if err := graphql.New(stack, backend.APIBackend, filterSystem, cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts); err != nil {
+	if err := graphql.New(stack, backend.APIBackend, filterSystem, []string{"*"}, cfg.Node.GraphQLVirtualHosts); err != nil {
 		log.Error("Failed to register the GraphQL service: %v", err)
 	}
 
