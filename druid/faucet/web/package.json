@@ -11,15 +11,15 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.8",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@sveltejs/vite-plugin-svelte": "^5.1.1",
     "@tsconfig/svelte": "^5.0.4",
-    "svelte": "^5.28.1",
-    "svelte-check": "^4.1.6",
+    "svelte": "^5.37.2",
+    "svelte-check": "^4.3.0",
     "typescript": "~5.7.3",
-    "vite": "^6.3.2"
+    "vite": "^6.3.5"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.4",
-    "tailwindcss": "^4.1.4"
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11"
   }
 }
