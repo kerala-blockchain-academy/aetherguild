@@ -1,15 +1,18 @@
 # Stage to build faucet UI
-FROM node:22.14.0-slim AS faucet
+FROM node:22-slim AS faucet
 
 WORKDIR /faucet
 COPY ./faucet/web/package.json ./
-RUN npm i -g pnpm@10.8.1 && pnpm i
+RUN npm i -g pnpm && pnpm i
 COPY ./faucet/web ./
 
 RUN pnpm run build
 
 # Stage to build druid
-FROM golang:1.24.2-alpine AS builder
+FROM golang:1.24-alpine AS builder
+
+ENV GO_BUILDFLAGS="-trimpath -ldflags=-s -ldflags=-w"
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
 WORKDIR /build
 COPY go.mod go.sum ./
@@ -17,12 +20,12 @@ RUN go mod download
 COPY . .
 COPY --from=faucet /dist ./faucet/
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o druid
+RUN go build $GO_BUILDFLAGS -o druid
 
 # Final stage
-FROM alpine:3.21.3 AS runner
+FROM alpine AS runner
 
 COPY --from=builder /build/druid /druid
-EXPOSE 8545 8580
+EXPOSE 8545 8546 8580
 
 ENTRYPOINT ["/druid", "--expose", "--persist"]
