@@ -1,3 +1,6 @@
+IMAGE = ghcr.io/kerala-blockchain-academy/aetherguild/druid
+TAG := $(shell git rev-parse --abbrev-ref HEAD)-$(shell git rev-parse --short HEAD)
+
 .PHONY: druid druid-forever druid-docker druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet test lint vet fmt
 
 druid: faucet
@@ -7,9 +10,9 @@ druid-forever: faucet
 	@go run ./druid --expose --persist
 
 druid-docker:
-	@cd druid/ && docker build -t ghcr.io/kerala-blockchain-academy/aetherguild/druid .
+	@cd druid/ && docker build -t $(IMAGE):$(TAG) .
 	@sleep 1
-	@docker run -p 8545:8545 -p 8580:8580 ghcr.io/kerala-blockchain-academy/aetherguild/druid
+	@docker run -p 8545:8545 -p 8580:8580 $(IMAGE):$(TAG)
 
 druid-linux-amd64: faucet
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tmp/druid-linux-amd64 ./druid
