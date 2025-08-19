@@ -1,5 +1,5 @@
 # Stage to build faucet UI
-FROM node:22-slim AS faucet
+FROM node:24-slim AS faucet
 
 WORKDIR /faucet
 COPY ./faucet/web/package.json ./
