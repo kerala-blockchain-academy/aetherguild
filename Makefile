@@ -1,5 +1,6 @@
 IMAGE = ghcr.io/kerala-blockchain-academy/aetherguild/druid
 TAG := $(shell git rev-parse --abbrev-ref HEAD)-$(shell git rev-parse --short HEAD)
+PKG_M := $(shell if command -v pnpm > /dev/null; then echo pnpm; else echo npm; fi)
 
 .PHONY: druid druid-forever druid-docker druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64 faucet test lint vet fmt
 
@@ -28,8 +29,8 @@ build-druid: druid-linux-amd64 druid-darwin-amd64 druid-windows-amd64
 faucet:
 	@if [ ! -d "druid/faucet/dist" ]; then \
 		echo "dist not found, running install & build..."; \
-		cd druid/faucet/web; \
-		npm install && npm run build; \
+		cd druid/faucet/ui; \
+		$(PKG_M) install && $(PKG_M) run build; \
 	fi
 
 test:
