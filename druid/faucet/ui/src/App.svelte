@@ -1,5 +1,6 @@
 <script lang="ts">
   let address = $state('')
+  let amount = $state(1)
 
   const requestTETH = async (e: Event) => {
     e.preventDefault()
@@ -11,14 +12,15 @@
 
       const formData = new FormData()
       formData.append('address', address)
+      formData.append('amount', amount.toString())
 
-      const response = await fetch('credit', {
+      const response = await fetch('api', {
         method: 'POST',
         body: formData,
       })
 
       if (response.ok) {
-        alert(`Credited 1 TETH successfully to ${address}!!`)
+        alert(`Credited ${amount} TETH successfully to ${address}!!`)
         address = ''
       } else {
         alert(`Error: ${await response.json()}`)
@@ -32,7 +34,6 @@
 <main>
   <form
     class="max-w-screen-md mx-auto m-6 p-6 bg-white border border-gray-200 rounded-lg shadow"
-    action="/credit"
     onsubmit={requestTETH}
   >
     <h1 class="text-2xl m-4 text-center">AetherGuild - Druid Faucet</h1>
@@ -46,6 +47,18 @@
       placeholder="0x..."
       required
       bind:value={address}
+    />
+    <label for="address" class="block mb-2 text-l font-medium text-gray-900"
+      >Amount in Ether</label
+    >
+    <input
+      type="number"
+      id="amount"
+      class="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full my-4 p-4"
+      min="1"
+      max="100"
+      required
+      bind:value={amount}
     />
     <button
       type="submit"

@@ -6,7 +6,14 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [tailwindcss(), svelte()],
   build: {
-    outDir: '../dist',
+    outDir: '../dist/',
     emptyOutDir: true, // also necessary
+    rollupOptions: {
+      output: {
+        entryFileNames: 'faucet/ui/[name].js',
+        chunkFileNames: 'faucet/ui/[name].js',
+        assetFileNames: 'faucet/ui/[name].[ext]',
+      },
+    },
   },
 })
