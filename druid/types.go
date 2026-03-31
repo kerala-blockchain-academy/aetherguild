@@ -12,9 +12,9 @@ type (
 	}
 
 	DruidConfig struct {
-		Eth      ethconfig.Config
-		Node     node.Config
-		Ethstats ethstatsConfig
-		Metrics  metrics.Config
+		Eth      *ethconfig.Config
+		Node     *node.Config
+		Ethstats *ethstatsConfig
+		Metrics  *metrics.Config
 	}
 )

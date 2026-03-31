@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/node"
 )
 
-func DefaultNodeConfig(expose, persist bool) node.Config {
+func DefaultNodeConfig(expose, persist bool) *node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = "druid"
 	cfg.DataDir = ""
@@ -42,11 +42,13 @@ func DefaultNodeConfig(expose, persist bool) node.Config {
 		cfg.DataDir = filepath.Join(DefaultDataDir(), "druid")
 	}
 
-	return cfg
+	return &cfg
 }
 
 func SetEthConfig(stack *node.Node, cfg *ethconfig.Config) {
 	cfg.NetworkId = 1337
+	cfg.SyncMode = ethconfig.FullSync
+	cfg.EnablePreimageRecording = true
 
 	// Create new developer account or reuse existing one
 	var (
