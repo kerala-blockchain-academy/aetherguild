@@ -1,19 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/Kerala-Blockchain-Academy/aetherguild/druid/faucet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -24,15 +26,15 @@ func TestDruid(t *testing.T) {
 	log.SetDefault(log.NewLogger(log.DiscardHandler()))
 
 	flag := false
-	stack := makeDruid(&flag, &flag)
+	stack, ethClient := makeDruid(&flag, &flag)
 	defer stack.Close()
 
 	if err := stack.Start(); err != nil {
 		t.Fatalf("Error starting protocol stack: %v", err)
 	}
 
-	rpcClient := stack.Attach()
-	ethClient := ethclient.NewClient(rpcClient)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
 
 	var version string
 	if err := ethClient.Client().CallContext(ctx, &version, "web3_clientVersion"); err != nil {
@@ -48,26 +50,55 @@ func TestDruid(t *testing.T) {
 func TestFaucet(t *testing.T) {
 	// revert logger setup in testing
 	log.SetDefault(log.NewLogger(log.DiscardHandler()))
+	var err error
 
+	addr := common.Address{0x64}
 	flag := false
-	stack := makeDruid(&flag, &flag)
+	stack, eth := makeDruid(&flag, &flag)
 	defer stack.Close()
 
 	if err := stack.Start(); err != nil {
 		t.Fatalf("Error starting protocol stack: %v", err)
 	}
 
-	rpcClient := stack.Attach()
-	ethClient := ethclient.NewClient(rpcClient)
-	c := faucet.NewFaucet(ethClient, privateKey, "", 0)
+	buf := &bytes.Buffer{}
+	writer := multipart.NewWriter(buf)
 
-	addr := common.Address{0x64}
-	if err := c.CreditTETH(addr.Hex()); err != nil {
-		t.Fatalf("Failed to credit ETH: %v", err)
+	if err = writer.WriteField("address", addr.Hex()); err != nil {
+		t.Fatalf("Error writing form data: %v", err)
+	}
+
+	if err = writer.WriteField("amount", "1"); err != nil {
+		t.Fatalf("Error writing form data: %v", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Failed to close multipart writer: %v", err)
+	}
+
+	contentType := writer.FormDataContentType()
+
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/faucet/api", stack.HTTPEndpoint()), buf)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send request: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Request failed with status %d", resp.StatusCode)
 	}
 
 	var result hexutil.Big
-	if err := ethClient.Client().CallContext(ctx, &result, "eth_getBalance", addr, "latest"); err != nil {
+	if err := eth.Client().CallContext(ctx, &result, "eth_getBalance", addr, "latest"); err != nil {
 		t.Fatalf("Failed to fetch balance: %v", err)
 	}
 

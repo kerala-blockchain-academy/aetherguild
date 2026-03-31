@@ -27,6 +27,7 @@ import (
 )
 
 var privateKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+var miner = crypto.PubkeyToAddress(privateKey.PublicKey)
 
 func init() {
 	terminalOutput := io.Writer(os.Stderr)
@@ -40,13 +41,13 @@ func init() {
 	log.SetDefault(log.NewLogger(glogger))
 }
 
-func makeDruid(expose, persist *bool) *node.Node {
+func makeDruid(expose, persist *bool) (*node.Node, *ethclient.Client) {
 	cfg := DruidConfig{
-		Eth:  ethconfig.Defaults,
+		Eth:  &ethconfig.Defaults,
 		Node: DefaultNodeConfig(*expose, *persist),
 	}
 
-	stack, err := node.New(&cfg.Node)
+	stack, err := node.New(cfg.Node)
 	if err != nil {
 		log.Error("Failed to create the protocol stack: %v", err)
 	}
@@ -55,9 +56,9 @@ func makeDruid(expose, persist *bool) *node.Node {
 	b.ImportECDSA(privateKey, "")
 	stack.AccountManager().AddBackend(b)
 
-	SetEthConfig(stack, &cfg.Eth)
+	SetEthConfig(stack, cfg.Eth)
 
-	backend, err := eth.New(stack, &cfg.Eth)
+	backend, err := eth.New(stack, cfg.Eth)
 	if err != nil {
 		log.Error("Failed to register the Ethereum service: %v", err)
 	}
@@ -84,7 +85,13 @@ func makeDruid(expose, persist *bool) *node.Node {
 	catalyst.RegisterSimulatedBeaconAPIs(stack, simBeacon)
 	stack.RegisterLifecycle(simBeacon)
 
-	return stack
+	faucetAPI := faucet.NewAPI(privateKey, stack.Attach(), &miner, cfg.Eth.Genesis.Config.ChainID)
+
+	stack.RegisterHandler("Faucet UI", "/faucet/ui", faucet.UI{})
+	stack.RegisterHandler("Faucet UI", "/faucet/ui/", faucet.UI{})
+	stack.RegisterHandler("Faucet API", "/faucet/api", faucetAPI)
+
+	return stack, ethclient.NewClient(stack.Attach())
 }
 
 func main() {
@@ -93,41 +100,14 @@ func main() {
 
 	flag.Parse()
 
-	stack := makeDruid(expose, persist)
-	defer stack.Close()
+	stack, client := makeDruid(expose, persist)
 
 	if err := stack.Start(); err != nil {
 		log.Error("Error starting protocol stack: %v", err)
 	}
 
-	go func() {
-		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
-		defer signal.Stop(sigc)
-
-		shutdown := func() {
-			log.Warn("Got interrupt, shutting down...")
-			go stack.Close()
-			for i := 10; i > 0; i-- {
-				<-sigc
-				if i > 1 {
-					log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
-				}
-			}
-		}
-
-		<-sigc
-		shutdown()
-	}()
-
 	events := make(chan accounts.WalletEvent, 16)
 	stack.AccountManager().Subscribe(events)
-
-	// Create a client to interact with local node.
-	rpcClient := stack.Attach()
-	ethClient := ethclient.NewClient(rpcClient)
-
-	c := faucet.NewFaucet(ethClient, privateKey, stack.Config().HTTPHost, 8580)
 
 	go func() {
 		// Open any wallets already attached
@@ -154,7 +134,7 @@ func main() {
 				}
 				derivationPaths = append(derivationPaths, accounts.DefaultBaseDerivationPath)
 
-				event.Wallet.SelfDerive(derivationPaths, ethClient)
+				event.Wallet.SelfDerive(derivationPaths, client)
 
 			case accounts.WalletDropped:
 				log.Info("Old wallet dropped", "url", event.Wallet.URL())
@@ -164,7 +144,23 @@ func main() {
 	}()
 
 	go func() {
-		faucet.ServeFaucet(c)
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(sigc)
+
+		shutdown := func() {
+			log.Warn("Got interrupt, shutting down...")
+			go stack.Close()
+			for i := 10; i > 0; i-- {
+				<-sigc
+				if i > 1 {
+					log.Warn("Already shutting down, interrupt more to panic.", "times", i-1)
+				}
+			}
+		}
+
+		<-sigc
+		shutdown()
 	}()
 
 	stack.Wait()
