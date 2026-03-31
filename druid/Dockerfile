@@ -2,9 +2,9 @@
 FROM node:24-slim AS faucet
 
 WORKDIR /faucet
-COPY ./faucet/web/package.json ./
+COPY ./faucet/ui/package.json ./
 RUN npm i -g pnpm && pnpm i
-COPY ./faucet/web ./
+COPY ./faucet/ui ./
 
 RUN pnpm run build
 
@@ -26,6 +26,6 @@ RUN go build $GO_BUILDFLAGS -o druid
 FROM alpine AS runner
 
 COPY --from=builder /build/druid /druid
-EXPOSE 8545 8546 8580
+EXPOSE 8545 8546
 
 ENTRYPOINT ["/druid", "--expose", "--persist"]
