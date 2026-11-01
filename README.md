@@ -11,3 +11,9 @@
 - **Cleric** 🧙🏼‍♂️ : Deployment toolkit.
 - **Druid** 🧝‍♀️ : Blockchain simulator.
 - **Wizard** 🧙 : Transaction explorer.
+
+## Demos 🎬
+
+- **Druid** 🧝‍♀️ : [Watch the demo](https://youtu.be/Ix2EYkWLGmM)
+- **Cleric** 🧙🏼‍♂️ : [Watch the demo](https://youtu.be/z-ew_RO1wOY)
+- **Wizard** 🧙 : [Watch the demo](https://youtu.be/BWqBnh7sTEs)
