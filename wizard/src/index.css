@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html, body, #root { height: 100%; margin: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #fff; color: #171717; }
+.dark body { background: #030712; color: #f3f4f6; color-scheme: dark; }
