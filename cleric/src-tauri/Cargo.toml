@@ -18,8 +18,22 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2.11.0", features = [] }
 tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+reqwest = { version = "0.12", features = ["multipart", "json"] }
+tokio = { version = "1", features = ["process", "io-util", "time"] }
+
+[target.'cfg(windows)'.dependencies]
+# Used for the one-time druid authorization prompt: ShellExecuteEx surfaces the
+# SmartScreen/SAC "allow" dialog, which a plain CreateProcess spawn cannot.
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
 

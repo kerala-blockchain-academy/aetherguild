@@ -24,6 +24,37 @@
   --color-green: #00ff66;
   --color-red: #ff0055;
   --color-yellow: #ffb800;
+  --color-orange: #ff8c00;
+}
+
+/* ── Light theme ───────────────────────────────────────────────────────────
+   Overrides the @theme variables when <html> has the `light` class (set by
+   the theme store / the inline script in app.html). Every Tailwind utility
+   built from these tokens — text-text, bg-surface-*, border-border, text-accent,
+   etc. — picks up the new values automatically, so colours flip without
+   touching markup. The accent/primary hues are darkened for contrast on light. */
+html.light {
+  --color-background: #eef1f8;
+  --color-surface: rgba(255, 255, 255, 0.55);
+  --color-surface-1: rgba(255, 255, 255, 0.75);
+  --color-surface-2: rgba(17, 24, 60, 0.05);
+  --color-surface-3: rgba(17, 24, 60, 0.1);
+  --color-border: rgba(17, 24, 60, 0.12);
+  --color-border-hover: rgba(17, 24, 60, 0.24);
+  --color-text: #161a2e;
+  --color-text-dim: #4a4e66;
+  --color-text-dimmer: #797d99;
+
+  --color-accent: #0891b2;
+  --color-accent-hover: #0e7490;
+  --color-accent-glow: rgba(8, 145, 178, 0.18);
+  --color-primary: #7c3aed;
+  --color-primary-glow: rgba(124, 58, 237, 0.16);
+
+  --color-green: #059669;
+  --color-red: #e11d48;
+  --color-yellow: #b45309;
+  --color-orange: #c2410c;
 }
 
 html, body {
@@ -61,8 +92,8 @@ html, body {
 }
 
 .dev-badge {
-  background: rgba(0, 240, 255, 0.05);
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: var(--color-accent-glow);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
   color: var(--color-accent);
 }
 .dev-badge-mono {
@@ -85,6 +116,6 @@ html, body {
 }
 
 ::selection {
-  background: rgba(0, 240, 255, 0.3);
-  color: white;
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: var(--color-text);
 }

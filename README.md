@@ -3,10 +3,17 @@
 <div align="center">
     <img src=".github/logo.png" alt="AetherGuild logo" width="160" />
     <h1>AetherGuild</h1>
-    <h3>A comprehensive Ethereum development suite in Go.</h3>
+    <h3>A comprehensive Ethereum development suite.</h3>
 </div>
 
 ## Members ⚔️
 
 - **Cleric** 🧙🏼‍♂️ : Deployment toolkit.
 - **Druid** 🧝‍♀️ : Blockchain simulator.
+- **Wizard** 🧙 : Transaction explorer.
+
+## Demos 🎬
+
+- **Druid** 🧝‍♀️ : [Watch the demo](https://youtu.be/Ix2EYkWLGmM)
+- **Cleric** 🧙🏼‍♂️ : [Watch the demo](https://youtu.be/z-ew_RO1wOY)
+- **Wizard** 🧙 : [Watch the demo](https://youtu.be/BWqBnh7sTEs)

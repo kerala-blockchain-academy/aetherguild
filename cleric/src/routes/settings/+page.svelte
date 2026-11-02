@@ -7,10 +7,10 @@
     Info,
     AlertTriangle,
   } from "lucide-svelte";
+  import { theme } from "$lib/stores/theme.svelte";
 
   let expose = $state(false);
   let persist = $state(false);
-  let theme = $state<"system" | "dark" | "light">("dark");
 
   const dataDir = "%LOCALAPPDATA%\\AetherGuild\\druid";
 </script>
@@ -105,10 +105,10 @@
             ] as option}
               <button
                 class="rounded-lg px-4 py-2 text-sm transition-colors
-                  {theme === option.value
+                  {theme.value === option.value
                     ? 'bg-accent text-white font-medium'
                     : 'bg-surface-2 text-text-dim hover:bg-surface-3 hover:text-text'}"
-                onclick={() => (theme = option.value as typeof theme)}
+                onclick={() => theme.set(option.value as typeof theme.value)}
               >
                 {option.label}
               </button>

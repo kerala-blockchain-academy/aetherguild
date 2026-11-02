@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "cleric",
-        "width": 800,
-        "height": 600
+        "title": "Cleric",
+        "width": 1100,
+        "height": 750,
+        "additionalBrowserArgs": "--enable-features=WebAssemblyUnlimitedSyncCompilation",
+        "dragDropEnabled": false
       }
     ],
     "security": {
@@ -23,6 +25,7 @@
   },
   "bundle": {
     "active": true,
+    "externalBin": [],
     "targets": "all",
     "icon": [
       "icons/32x32.png",

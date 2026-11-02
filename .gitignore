@@ -27,7 +27,6 @@ go.work.sum
 .env
 
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -55,3 +54,4 @@ yarn.lock
 *.sw?
 .claude/worktrees/agitated-buck/
 /.claude
+/cleric/.claude

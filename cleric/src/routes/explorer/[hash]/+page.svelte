@@ -1,11 +1,26 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { ArrowLeft, Copy, Check, ArrowRight } from "lucide-svelte";
+  import { onMount } from "svelte";
+  import { ArrowLeft, Copy, Check, ArrowRight, RefreshCw } from "lucide-svelte";
+  import {
+    getBlockByNumber,
+    getTransactionByHash,
+    formatGas,
+    formatAge,
+    formatTimestamp,
+    formatEth,
+    hexToNum,
+  } from "$lib/rpc";
 
   let copied = $state("");
+  let loading = $state(true);
+  let error = $state("");
+  let block = $state<any>(null);
+  let tx = $state<any>(null);
 
-  const hash = $derived($page.params.hash);
-  const isBlock = $derived(!hash.startsWith("0x") || hash.length < 66);
+  const param = $derived($page.params.hash);
+  // Tx hash: starts with 0x and is 66 chars
+  const isTx = $derived(param.startsWith("0x") && param.length === 66);
 
   function copyToClipboard(text: string, key: string) {
     navigator.clipboard.writeText(text);
@@ -13,131 +28,158 @@
     setTimeout(() => (copied = ""), 1500);
   }
 
-  const mockBlock = {
-    number: 5,
-    hash: "0xabc123def456789abc123def456789abc123def456789abc123def456789abcd",
-    parentHash: "0x999888def456789abc123def456789abc123def456789abc123def456789abcd",
-    timestamp: "2025-04-05 14:32:01",
-    gasUsed: "126,000",
-    gasLimit: "30,000,000",
-    miner: "0x71562b71999567F8C7E3BD885b2D4Fe429781573",
-    txns: [
-      { hash: "0xaaa111bbb222ccc333ddd444eee555fff666777888999aaa111bbb222ccc333dd", from: "0x7156...1573", to: "0xdead...beef", value: "1.5 ETH", status: "Success" },
-      { hash: "0xbbb222ccc333ddd444eee555fff666777888999aaa111bbb222ccc333ddd444ee", from: "0x7156...1573", to: "0xcafe...babe", value: "0 ETH", status: "Success" },
-      { hash: "0xccc333ddd444eee555fff666777888999aaa111bbb222ccc333ddd444eee555ff", from: "0x7156...1573", to: "0xface...d00d", value: "2.0 ETH", status: "Success" },
-    ],
-  };
+  async function load() {
+    loading = true;
+    error = "";
+    block = null;
+    tx = null;
+    try {
+      if (isTx) {
+        tx = await getTransactionByHash(param);
+        if (!tx) throw new Error("Transaction not found");
+      } else {
+        const n = parseInt(param);
+        if (isNaN(n)) throw new Error("Invalid block number");
+        block = await getBlockByNumber(n, true);
+        if (!block) throw new Error("Block not found");
+      }
+    } catch (e: any) {
+      error = e.message ?? "Failed to load";
+    }
+    loading = false;
+  }
 
-  const mockTx = {
-    hash: "0xaaa111bbb222ccc333ddd444eee555fff666777888999aaa111bbb222ccc333dd",
-    blockNumber: 5,
-    from: "0x71562b71999567F8C7E3BD885b2D4Fe429781573",
-    to: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-    value: "1.5 ETH",
-    gasUsed: "21,000",
-    gasPrice: "1 wei",
-    status: "Success",
-    nonce: 3,
-    inputData: "0x",
-  };
+  onMount(load);
+
+  $effect(() => {
+    param; // re-run when param changes
+    load();
+  });
 </script>
 
 <div class="flex-1 overflow-y-auto">
-<div class="p-6">
-  <a href="/explorer" class="mb-4 inline-flex items-center gap-1.5 text-sm text-text-dim transition-colors hover:text-text">
-    <ArrowLeft size={14} /> Back to Explorer
-  </a>
+  <div class="p-6">
+    <a
+      href="/explorer"
+      class="mb-4 inline-flex items-center gap-1.5 text-sm text-text-dim transition-colors hover:text-text"
+    >
+      <ArrowLeft size={14} /> Back to Explorer
+    </a>
 
-  {#if isBlock}
-    <!-- Block Detail -->
-    <h1 class="mb-6 text-xl font-semibold">Block #{hash}</h1>
-
-    <div class="mb-6 rounded-xl border border-border bg-surface-1 p-5">
-      <h2 class="mb-4 text-sm font-medium text-text-dim">Block Header</h2>
-      <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {#each [
-          { label: "Block Hash", value: mockBlock.hash, key: "bh" },
-          { label: "Parent Hash", value: mockBlock.parentHash, key: "ph" },
-          { label: "Timestamp", value: mockBlock.timestamp, key: "" },
-          { label: "Gas Used / Limit", value: `${mockBlock.gasUsed} / ${mockBlock.gasLimit}`, key: "" },
-          { label: "Miner", value: mockBlock.miner, key: "miner" },
-        ] as field}
-          <div class="flex items-start justify-between rounded-lg bg-surface-2 px-3 py-2.5">
-            <div class="min-w-0 flex-1">
-              <div class="text-xs text-text-dimmer">{field.label}</div>
-              <div class="mt-0.5 truncate font-mono text-sm text-text">{field.value}</div>
-            </div>
-            {#if field.key}
-              <button
-                class="ml-2 shrink-0 rounded-md p-1 text-text-dim hover:text-text"
-                onclick={() => copyToClipboard(field.value, field.key)}
-              >
-                {#if copied === field.key}
-                  <Check size={12} class="text-green" />
-                {:else}
-                  <Copy size={12} />
-                {/if}
-              </button>
-            {/if}
-          </div>
-        {/each}
+    {#if loading}
+      <div class="flex items-center justify-center py-20 text-text-dimmer gap-3">
+        <RefreshCw size={18} class="animate-spin" /> Loading...
       </div>
-    </div>
+    {:else if error}
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <p class="text-sm text-red">{error}</p>
+        <p class="mt-1 text-xs text-text-dimmer">Make sure Druid is running.</p>
+      </div>
+    {:else if block}
+      <!-- Block Detail -->
+      <h1 class="mb-6 text-xl font-semibold">Block #{hexToNum(block.number)}</h1>
 
-    <!-- Transactions in block -->
-    <div class="rounded-xl border border-border bg-surface-1 p-5">
-      <h2 class="mb-4 text-sm font-medium text-text-dim">
-        Transactions ({mockBlock.txns.length})
-      </h2>
-      <div class="flex flex-col gap-2">
-        {#each mockBlock.txns as tx}
-          <a
-            href="/explorer/{tx.hash}"
-            class="flex items-center justify-between rounded-lg bg-surface-2 px-4 py-3 transition-colors hover:bg-surface-3"
-          >
-            <div class="min-w-0 flex-1">
-              <div class="truncate font-mono text-sm text-accent">{tx.hash}</div>
-              <div class="mt-1 flex items-center gap-2 text-xs text-text-dim">
-                <span>{tx.from}</span>
-                <ArrowRight size={10} />
-                <span>{tx.to}</span>
+      <div class="mb-6 rounded-xl border border-border bg-surface-1 p-5">
+        <h2 class="mb-4 text-sm font-medium text-text-dim">Block Header</h2>
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {#each [
+            { label: "Block Hash",        value: block.hash,                          key: "bh" },
+            { label: "Parent Hash",       value: block.parentHash,                    key: "ph" },
+            { label: "Timestamp",         value: formatTimestamp(block.timestamp),     key: "" },
+            { label: "Miner",             value: block.miner,                         key: "miner" },
+            { label: "Gas Used / Limit",  value: `${formatGas(block.gasUsed)} / ${formatGas(block.gasLimit)}`, key: "" },
+            { label: "Age",               value: formatAge(block.timestamp),           key: "" },
+          ] as field}
+            <div class="flex items-start justify-between rounded-lg bg-surface-2 px-3 py-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-text-dimmer">{field.label}</div>
+                <div class="mt-0.5 truncate font-mono text-sm text-text">{field.value}</div>
               </div>
+              {#if field.key}
+                <button
+                  class="ml-2 shrink-0 rounded-md p-1 text-text-dim hover:text-text"
+                  onclick={() => copyToClipboard(field.value, field.key)}
+                >
+                  {#if copied === field.key}
+                    <Check size={12} class="text-green" />
+                  {:else}
+                    <Copy size={12} />
+                  {/if}
+                </button>
+              {/if}
             </div>
-            <div class="ml-4 text-right">
-              <div class="text-sm font-medium text-text">{tx.value}</div>
-              <div class="text-xs text-green">{tx.status}</div>
-            </div>
-          </a>
-        {/each}
+          {/each}
+        </div>
       </div>
-    </div>
-  {:else}
-    <!-- Transaction Detail -->
-    <h1 class="mb-6 text-xl font-semibold">Transaction Details</h1>
 
-    <div class="rounded-xl border border-border bg-surface-1 p-5">
-      <div class="flex flex-col gap-3">
-        {#each [
-          { label: "Tx Hash", value: mockTx.hash, mono: true },
-          { label: "Status", value: mockTx.status, mono: false },
-          { label: "Block", value: String(mockTx.blockNumber), mono: false },
-          { label: "From", value: mockTx.from, mono: true },
-          { label: "To", value: mockTx.to, mono: true },
-          { label: "Value", value: mockTx.value, mono: false },
-          { label: "Gas Used", value: mockTx.gasUsed, mono: false },
-          { label: "Gas Price", value: mockTx.gasPrice, mono: false },
-          { label: "Nonce", value: String(mockTx.nonce), mono: false },
-          { label: "Input Data", value: mockTx.inputData, mono: true },
-        ] as field}
-          <div class="flex items-center justify-between rounded-lg bg-surface-2 px-4 py-3">
-            <div class="w-28 shrink-0 text-xs text-text-dimmer">{field.label}</div>
-            <div class="min-w-0 flex-1 truncate text-right text-sm {field.mono ? 'font-mono' : ''} {field.label === 'Status' ? 'text-green' : 'text-text'}">
-              {field.value}
-            </div>
+      <!-- Transactions -->
+      <div class="rounded-xl border border-border bg-surface-1 p-5">
+        <h2 class="mb-4 text-sm font-medium text-text-dim">
+          Transactions ({block.transactions.length})
+        </h2>
+        {#if block.transactions.length === 0}
+          <p class="text-sm text-text-dimmer">No transactions in this block.</p>
+        {:else}
+          <div class="flex flex-col gap-2">
+            {#each block.transactions as t}
+              <a
+                href="/explorer/{t.hash}"
+                class="flex items-center justify-between rounded-lg bg-surface-2 px-4 py-3 transition-colors hover:bg-surface-3"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate font-mono text-sm text-accent">{t.hash}</div>
+                  <div class="mt-1 flex items-center gap-2 text-xs text-text-dim">
+                    <span class="truncate max-w-[120px]">{t.from}</span>
+                    <ArrowRight size={10} class="shrink-0" />
+                    <span class="truncate max-w-[120px]">{t.to ?? "Contract Create"}</span>
+                  </div>
+                </div>
+                <div class="ml-4 shrink-0 text-right">
+                  <div class="text-sm font-medium text-text">{formatEth(t.value)}</div>
+                  <div class="text-xs text-green">Success</div>
+                </div>
+              </a>
+            {/each}
           </div>
-        {/each}
+        {/if}
       </div>
-    </div>
-  {/if}
-</div>
+    {:else if tx}
+      <!-- Transaction Detail -->
+      <h1 class="mb-6 text-xl font-semibold">Transaction</h1>
+
+      <div class="rounded-xl border border-border bg-surface-1 p-5">
+        <div class="flex flex-col gap-3">
+          {#each [
+            { label: "Tx Hash",    value: tx.hash,                              mono: true },
+            { label: "Block",      value: `#${hexToNum(tx.blockNumber)}`,        mono: false, href: `/explorer/${hexToNum(tx.blockNumber)}` },
+            { label: "From",       value: tx.from,                              mono: true },
+            { label: "To",         value: tx.to ?? "Contract Create",           mono: true },
+            { label: "Value",      value: formatEth(tx.value),                  mono: false },
+            { label: "Gas Limit",  value: formatGas(tx.gas),                    mono: false },
+            { label: "Gas Price",  value: `${hexToNum(tx.gasPrice)} wei`,        mono: false },
+            { label: "Nonce",      value: String(hexToNum(tx.nonce)),            mono: false },
+            { label: "Input Data", value: tx.input,                             mono: true },
+          ] as field}
+            <div class="flex items-center justify-between rounded-lg bg-surface-2 px-4 py-3">
+              <div class="w-24 shrink-0 text-xs text-text-dimmer">{field.label}</div>
+              {#if field.href}
+                <a
+                  href={field.href}
+                  class="min-w-0 flex-1 truncate text-right text-sm font-mono text-accent hover:underline"
+                >
+                  {field.value}
+                </a>
+              {:else}
+                <div
+                  class="min-w-0 flex-1 truncate text-right text-sm {field.mono ? 'font-mono' : ''} text-text"
+                >
+                  {field.value}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  </div>
 </div>
